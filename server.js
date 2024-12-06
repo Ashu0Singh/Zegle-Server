@@ -6,7 +6,7 @@ import pino from "pino";
 import pinoHttp from "pino-http";
 import cookieParser from "cookie-parser";
 
-import { PORT } from "./config.js";
+import { CLIENT_URLS, PORT } from "./config.js";
 import { connectToMongo } from "./dal.js";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -39,10 +39,11 @@ const logger = pino({
     level: "info",
 });
 
+console.log("CLIENT_URLS", JSON.parse(CLIENT_URLS));
 app.use(
     cors({
         credentials: true,
-        origin: "*",
+        origin: JSON.parse(CLIENT_URLS),
         methods: ["GET", "POST", "PUT", "DELETE"],
     }),
 );
