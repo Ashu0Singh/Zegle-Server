@@ -8,6 +8,11 @@ import cookieParser from "cookie-parser";
 
 import { PORT } from "./config.js";
 import { connectToMongo } from "./dal.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import User from "./routes/userAuth.js";
 
@@ -16,7 +21,7 @@ const server = createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: "http://localhost:3000",
         methods: ["GET", "POST"],
     },
 });
@@ -37,12 +42,10 @@ const logger = pino({
 app.use(
     cors({
         credentials: true,
-        origin: "http://localhost:3000",
+        origin: "*",
         methods: ["GET", "POST", "PUT", "DELETE"],
     }),
 );
-
-app.options("*", cors());
 
 app.use(express.json());
 
@@ -64,10 +67,16 @@ app.use(cookieParser());
 
 app.use("/user", User);
 
-await connectToMongo().then(() =>
-    server.listen(PORT || 8080, () => {
-        console.log(`Server running on PORT: ${PORT}`);
-    }),
-).catch(error => {
-    console.log(`Unable to start the server : ${error.message}`)
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "/", "index.html"));
 });
+
+await connectToMongo()
+    .then(() =>
+        server.listen(PORT || 8080, () => {
+            console.log(`Server running on PORT: ${PORT}`);
+        }),
+    )
+    .catch((error) => {
+        console.log(`Unable to start the server : ${error.message}`);
+    });
