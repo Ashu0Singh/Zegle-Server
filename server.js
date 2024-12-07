@@ -7,14 +7,15 @@ import pinoHttp from "pino-http";
 import cookieParser from "cookie-parser";
 
 import { CLIENT_URLS, PORT } from "./config.js";
-import { connectToMongo } from "./dal.js";
+import { connectToMongo } from "./dal/dal.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import User from "./routes/userAuth.js";
+import User from "./routes/user.route.js";
+import Chat from "./routes/chat.route.js";
 
 const app = express();
 const server = createServer(app);
@@ -69,6 +70,7 @@ app.use(
 app.use(cookieParser());
 
 app.use("/user", User);
+app.use("/chat", Chat);
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "/", "index.html"));

@@ -1,4 +1,4 @@
-import { getUserDataByID, updateUserDataByID } from "../dal.js";
+import { getUserDataByID, updateUserDataByID } from "../dal/dal.js";
 
 export const User = async (req, res) => {
     const _id = req?.user_id?.userId;

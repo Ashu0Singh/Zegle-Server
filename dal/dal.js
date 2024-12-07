@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { MONGO_CONNECTION_URI } from "./config.js";
-import User from "./models/User.schema.js";
+import { MONGO_CONNECTION_URI } from "../config.js";
+import User from "../models/User.schema.js";
 
 export const connectToMongo = async () => {
     await mongoose
