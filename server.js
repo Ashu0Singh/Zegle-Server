@@ -22,7 +22,7 @@ const server = createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: JSON.parse(CLIENT_URLS),
         methods: ["GET", "POST"],
     },
 });
@@ -49,7 +49,7 @@ app.use(
     }),
 );
 
-app.options("*", cors());
+app.options(JSON.parse(CLIENT_URLS), cors());
 
 app.use(express.json());
 
