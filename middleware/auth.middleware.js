@@ -2,8 +2,7 @@ import jwt from "jsonwebtoken";
 import { JWT_AUTH_SECRET_KEY } from "../config.js";
 
 export const authenticateToken = (req, res, next) => {
-    const token = req.cookies?.["jwtToken"];
-
+    const token = req?.cookies?.["jwtToken"];
     if (!token) {
         return res.status(401).json({ error: "Try login in again" });
     }
