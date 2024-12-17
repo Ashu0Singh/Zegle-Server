@@ -32,35 +32,97 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-    console.log("User connected");
-    console.log(socket.id);
+    console.log(`> User connected : ${socket.id}`);
 
-    socket.on("find_partner", async (data) => {
+    // Updated to handle peer signaling for simple-peer
+    socket.on("peer_signal", (data) => {
+        const { roomID, signal } = data;
+        console.log(`> Peer signal received for room: ${roomID}`);
+        console.log(signal);
+
+        // Broadcast the signal to other users in the same room
+        socket.to(roomID).emit("peer_signal", {
+            signal,
+            from: socket.id,
+        });
+    });
+
+    socket.on("add_offer", (data) => {
+        const roomID = data.roomID;
+        const offer = data.offer;
+        const partnerSocket = roomID.split(socket.id)[0]
+            ? roomID.split(socket.id)[0]
+            : roomID.split(socket.id)[1];
+        console.log(
+            `> Offer received for room: ${roomID} sending to ${partnerSocket} from socket ${socket.id}`,
+        );
+        if (partnerSocket)
+            socket.to(partnerSocket).emit("add_offer", { roomID, offer });
+    });
+
+    socket.on("add_answer", (data) => {
+        const roomID = data.roomID;
+        const answer = data.answer;
+        console.log(`> Answer received for room: ${roomID}`);
+        const partnerSocket = roomID.split(socket.id)[0]
+            ? roomID.split(socket.id)[0]
+            : roomID.split(socket.id)[1];
+        socket.to(partnerSocket).emit("add_answer", { roomID, answer });
+    });
+
+    socket.on("ice_candidates", (data) => {
+        const roomID = data.roomID;
+        const candidates = data.candidates;
+        console.log(`> ICE candidate received for room: ${roomID}`);
+        console.log(candidates);
+        const partnerSocket = roomID.split(socket.id)[0]
+            ? roomID.split(socket.id)[0]
+            : roomID.split(socket.id)[1];
+        socket.to(partnerSocket).emit("ice_candidates", { roomID, candidates });
+    });
+
+    socket.on("find_partner", (data) => {
         if (waitingUsers.length > 0 && waitingUsers[0].id !== socket.id) {
-            console.log("Partner found > Setting up connection for users");
             const partnerSocket = waitingUsers.pop();
             const roomID = socket.id + partnerSocket.id;
+
             socket.userID = data?.username ? data.username : data.uuid;
+            socket.roomID = roomID;
 
             socket.join(roomID);
             partnerSocket.join(roomID);
 
-            console.log("Partner found > Setting up connection for users");
+            const partnerInfo = {
+                id: partnerSocket.id,
+                username: partnerSocket.userID,
+            };
+
+            console.log(
+                `> Partner found -> Paired ${socket.userID} with ${partnerSocket.userID}`,
+            );
+
             socket.emit("partner_found", {
                 roomID,
                 username: partnerSocket.userID,
-                partnerSocketID: partnerSocket.id,
+                partnerSocket: partnerInfo,
+                isInitiator: true,
             });
+
             partnerSocket.emit("partner_found", {
                 roomID,
                 username: socket.userID,
-                partnerSocketID: socket.id,
+                partnerSocket: {
+                    id: socket.id,
+                    username: socket.userID,
+                },
+                isInitiator: false,
             });
         } else {
-            console.log("No Partner found > Pushed to user queue");
-            console.log(data);
             socket.userID = data?.username ? data.username : data.uuid;
             waitingUsers.push(socket);
+            console.log(
+                `> No Partner found -> Pushed to waiting list : ${socket.userID}`,
+            );
         }
     });
 
