@@ -63,7 +63,6 @@ io.on("connection", (socket) => {
     socket.on("add_answer", (data) => {
         const roomID = data.roomID;
         const answer = data.answer;
-        console.log(`> Answer received for room: ${roomID}`);
         const partnerSocket = roomID.split(socket.id)[0]
             ? roomID.split(socket.id)[0]
             : roomID.split(socket.id)[1];
@@ -73,8 +72,6 @@ io.on("connection", (socket) => {
     socket.on("ice_candidates", (data) => {
         const roomID = data.roomID;
         const candidates = data.candidates;
-        console.log(`> ICE candidate received for room: ${roomID}`);
-        console.log(candidates);
         const partnerSocket = roomID.split(socket.id)[0]
             ? roomID.split(socket.id)[0]
             : roomID.split(socket.id)[1];
