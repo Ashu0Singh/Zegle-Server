@@ -67,6 +67,7 @@ io.on("connection", (socket) => {
 
     socket.on("find_partner", (data) => {
         socket.userID = data?.username ? data.username : data.uuid;
+        socket.roomID = null;
         if (
             waitingUsers.length > 0 &&
             waitingUsers[0].id !== socket.id &&
@@ -87,7 +88,7 @@ io.on("connection", (socket) => {
             };
 
             console.log(
-                `> Partner found -> Paired ${socket.userID} with ${partnerSocket.userID}`,
+                `[${new Date().toISOString()}] > Partner found -> Paired ${socket.userID} with ${partnerSocket.userID}`,
             );
 
             socket.emit("partner_found", {
@@ -131,15 +132,17 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        const roomID = socket.roomID;
-        socket.leave(roomID);
+        const roomID = socket?.roomID;
+        if (roomID) {
+            socket.leave(roomID);
+            const partnerSocket = getPartnerSocket(roomID, socket.id);
+            socket.to(partnerSocket).emit("partner_disconnected");
+        }
         console.log("> User disconnected : ", socket.id);
         const index = waitingUsers.findIndex((s) => s.id === socket.id);
         if (index !== -1) {
             waitingUsers.splice(index, 1);
         }
-        const partnerSocket = getPartnerSocket(roomID, socket.id);
-        socket.to(partnerSocket).emit("partner_disconnected");
     });
 });
 
