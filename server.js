@@ -31,28 +31,19 @@ const io = new Server(server, {
     },
 });
 
+const getPartnerSocket = (roomID, socketID) => {
+    return roomID.split(socketID)[0]
+        ? roomID.split(socketID)[0]
+        : roomID.split(socketID)[1];
+};
+
 io.on("connection", (socket) => {
     console.log(`> User connected : ${socket.id}`);
-
-    // Updated to handle peer signaling for simple-peer
-    socket.on("peer_signal", (data) => {
-        const { roomID, signal } = data;
-        console.log(`> Peer signal received for room: ${roomID}`);
-        console.log(signal);
-
-        // Broadcast the signal to other users in the same room
-        socket.to(roomID).emit("peer_signal", {
-            signal,
-            from: socket.id,
-        });
-    });
 
     socket.on("add_offer", (data) => {
         const roomID = data.roomID;
         const offer = data.offer;
-        const partnerSocket = roomID.split(socket.id)[0]
-            ? roomID.split(socket.id)[0]
-            : roomID.split(socket.id)[1];
+        const partnerSocket = getPartnerSocket(roomID, socket.id);
         console.log(
             `> Offer received for room: ${roomID} sending to ${partnerSocket} from socket ${socket.id}`,
         );
@@ -63,28 +54,29 @@ io.on("connection", (socket) => {
     socket.on("add_answer", (data) => {
         const roomID = data.roomID;
         const answer = data.answer;
-        const partnerSocket = roomID.split(socket.id)[0]
-            ? roomID.split(socket.id)[0]
-            : roomID.split(socket.id)[1];
+        const partnerSocket = getPartnerSocket(roomID, socket.id);
         socket.to(partnerSocket).emit("add_answer", { roomID, answer });
     });
 
     socket.on("ice_candidates", (data) => {
         const roomID = data.roomID;
         const candidates = data.candidates;
-        const partnerSocket = roomID.split(socket.id)[0]
-            ? roomID.split(socket.id)[0]
-            : roomID.split(socket.id)[1];
+        const partnerSocket = getPartnerSocket(roomID, socket.id);
         socket.to(partnerSocket).emit("ice_candidates", { roomID, candidates });
     });
 
     socket.on("find_partner", (data) => {
-        if (waitingUsers.length > 0 && waitingUsers[0].id !== socket.id) {
+        socket.userID = data?.username ? data.username : data.uuid;
+        if (
+            waitingUsers.length > 0 &&
+            waitingUsers[0].id !== socket.id &&
+            waitingUsers[0].userID !== socket.userID
+        ) {
             const partnerSocket = waitingUsers.pop();
             const roomID = socket.id + partnerSocket.id;
 
-            socket.userID = data?.username ? data.username : data.uuid;
             socket.roomID = roomID;
+            partnerSocket.roomID = roomID;
 
             socket.join(roomID);
             partnerSocket.join(roomID);
@@ -115,7 +107,6 @@ io.on("connection", (socket) => {
                 isInitiator: false,
             });
         } else {
-            socket.userID = data?.username ? data.username : data.uuid;
             waitingUsers.push(socket);
             console.log(
                 `> No Partner found -> Pushed to waiting list : ${socket.userID}`,
@@ -133,19 +124,31 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on("stop_chatting", (data) => {
+        const roomID = data.roomID;
+        const partnerSocket = getPartnerSocket(roomID, socket.id);
+        socket.to(partnerSocket).emit("partner_disconnected");
+    });
+
     socket.on("disconnect", () => {
+        const roomID = socket.roomID;
+        socket.leave(roomID);
+        console.log("> User disconnected : ", socket.id);
         const index = waitingUsers.findIndex((s) => s.id === socket.id);
         if (index !== -1) {
             waitingUsers.splice(index, 1);
         }
-
-        socket.to(socket.roomID).emit("partner_disconnected");
+        const partnerSocket = getPartnerSocket(roomID, socket.id);
+        socket.to(partnerSocket).emit("partner_disconnected");
     });
 });
 
-const logger = pino({
-    level: "info",
-});
+const logger = pino(
+    {
+        level: "info",
+    },
+    pino.destination(`${__dirname}/logs/zegle-server.log`),
+);
 
 console.log("CLIENT_URLS", JSON.parse(CLIENT_URLS));
 app.use(
