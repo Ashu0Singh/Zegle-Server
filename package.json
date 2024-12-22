@@ -4,6 +4,7 @@
     "main": "server.js",
     "type": "module",
     "scripts": {
+        "prestart": "mkdir -p logs && touch logs/zegle-server.log logs/zegle-server.error.log",
         "dev": "nodemon server.js",
         "start": "node server.js",
         "lint": "npx prettier . -write",

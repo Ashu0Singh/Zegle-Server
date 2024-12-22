@@ -2,8 +2,8 @@ import express from "express";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import cors from "cors";
-import pino from "pino";
 import pinoHttp from "pino-http";
+import logger from "./logger.js";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -145,13 +145,6 @@ io.on("connection", (socket) => {
         }
     });
 });
-
-const logger = pino(
-    {
-        level: "info",
-    },
-    pino.destination(`${__dirname}/logs/zegle-server.log`),
-);
 
 console.log("CLIENT_URLS", JSON.parse(CLIENT_URLS));
 app.use(
