@@ -11,6 +11,7 @@ const userSchema = new Schema({
     tier: { type: String },
     oAuth: { type: String },
     password: { type: String },
+    verified: { type: Boolean, default: false },
 });
 
 userSchema.index({ username: 1 }, { unique: true });

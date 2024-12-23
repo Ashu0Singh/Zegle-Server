@@ -25,3 +25,8 @@ export const updateUserDataByID = async (_id, data) => {
     const user = await User.findOneAndUpdate({ _id }, data);
     return user;
 };
+
+export const updateUserDataByEmail = async (email, data) => {
+    const user = await User.findOneAndUpdate({ email }, data);
+    return user;
+};

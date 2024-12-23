@@ -125,7 +125,7 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on("stop_chatting", (data) => {
+    socket.on("disconnect_partner", (data) => {
         const roomID = data.roomID;
         const partnerSocket = getPartnerSocket(roomID, socket.id);
         socket.to(partnerSocket).emit("partner_disconnected");

@@ -12,3 +12,6 @@ export const REDIS_PORT = process.env.REDIS_PORT;
 export const REDIS_USER = process.env.REDIS_USER;
 export const REDIS_PASS = process.env.REDIS_PASS;
 export const REDIS_URI = process.env.REDIS_URI;
+export const CLIENT_URL = process.env.CLIENT_URL;
+export const RESEND_EMAIL_SECRET = process.env.RESEND_EMAIL_SECRET;
+export const EMAIL_SALT = process.env.EMAIL_SALT;

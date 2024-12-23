@@ -1,4 +1,12 @@
-import { getUserDataByID, updateUserDataByID } from "../dal/dal.js";
+import bcrypt from "bcrypt";
+import {
+    getUserDataByID,
+    updateUserDataByEmail,
+    updateUserDataByID,
+} from "../dal/dal.js";
+import { confirmationEmail } from "../email/confirmationEmail.js";
+import { sendEmail } from "../email/sendEmail.js";
+import { CLIENT_URL, EMAIL_SALT } from "../config.js";
 
 export const User = async (req, res) => {
     const _id = req?.user_id?.userId;
@@ -15,6 +23,7 @@ export const User = async (req, res) => {
         email: user.email,
         avatar: user.avatar,
         tier: user.tier,
+        verified: user.verified,
     });
 };
 
@@ -40,5 +49,39 @@ export const SaveUser = async (req, res) => {
         });
     } catch {
         return res.status(400).json({ error: "Error while updating userdata" });
+    }
+};
+
+export const VerifyUserEmail = async (req, res) => {
+    const { email, token } = req.body;
+    const hash = await bcrypt.hash(`${email}-${EMAIL_SALT}`, 8);
+    const link = `${CLIENT_URL}/verify?token=${hash}`;
+
+    if (token) {
+        if (!email) {
+            return res.status(400).json({ error: "Email is required" });
+        } else {
+            const compare = await bcrypt.compare(
+                `${email}-${EMAIL_SALT}`,
+                token,
+            );
+            if (compare) {
+                await updateUserDataByEmail(email, { verified: true });
+                return res.status(200).json({ message: "Token verified" });
+            } else {
+                return res.status(400).json({ error: "Invalid token" });
+            }
+        }
+    }
+    const VerifyUserEmail = confirmationEmail(link);
+    const isSent = await sendEmail(
+        email,
+        "Zegle : Verify your email",
+        VerifyUserEmail,
+    );
+    if (isSent) {
+        return res.status(200).json({ message: "Email sent" });
+    } else {
+        return res.status(500).json({ error: "Error while sending email" });
     }
 };
