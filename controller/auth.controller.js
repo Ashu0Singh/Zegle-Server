@@ -2,6 +2,7 @@ import User from "../models/User.schema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { JWT_AUTH_SECRET_KEY, SERVER_URL } from "../config.js";
+import logger from "../logger.js";
 
 export const SignUp = async (req, res) => {
     try {
@@ -52,20 +53,16 @@ export const SignUp = async (req, res) => {
                 email: user.email,
                 message: "Verification email sent",
             });
-        } catch {
-            return res
-                .status(400)
-                .json({
-                    username: user.username,
-                    email: user.email,
-                    error: "Error while sending verification email",
-                });
+        } catch (error) {
+            logger.error(error, "Error while sending verification email");
+            return res.status(400).json({
+                username: user.username,
+                email: user.email,
+                error: "Error while sending verification email",
+            });
         }
     } catch (error) {
-        throw new Error(
-            `Error : While registering a new user \n${error.message}`,
-            error,
-        );
+        logger.error(error, "Error while registering a new user");
     }
 };
 
@@ -102,9 +99,6 @@ export const Login = async (req, res) => {
             email: user.email,
         });
     } catch (error) {
-        throw new Error(
-            `Error : While loging in a user \n${error.message}`,
-            error,
-        );
+        logger.error(error, "Error while loging in a user");
     }
 };
