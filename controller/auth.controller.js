@@ -1,7 +1,7 @@
 import User from "../models/User.schema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { JWT_AUTH_SECRET_KEY } from "../config.js";
+import { JWT_AUTH_SECRET_KEY, SERVER_URL } from "../config.js";
 
 export const SignUp = async (req, res) => {
     try {
@@ -41,10 +41,26 @@ export const SignUp = async (req, res) => {
 
         res.cookie("jwtToken", token, cookieOptions);
 
-        res.status(200).json({
-            username: user.username,
-            email: user.email,
-        });
+        try {
+            await fetch(`${SERVER_URL}/user/verify`, {
+                method: "POST",
+                body: JSON.stringify({ email }),
+                headers: { "Content-Type": "application/json" },
+            });
+            res.status(200).json({
+                username: user.username,
+                email: user.email,
+                message: "Verification email sent",
+            });
+        } catch {
+            return res
+                .status(400)
+                .json({
+                    username: user.username,
+                    email: user.email,
+                    error: "Error while sending verification email",
+                });
+        }
     } catch (error) {
         throw new Error(
             `Error : While registering a new user \n${error.message}`,

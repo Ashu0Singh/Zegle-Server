@@ -15,3 +15,4 @@ export const REDIS_URI = process.env.REDIS_URI;
 export const CLIENT_URL = process.env.CLIENT_URL;
 export const RESEND_EMAIL_SECRET = process.env.RESEND_EMAIL_SECRET;
 export const EMAIL_SALT = process.env.EMAIL_SALT;
+export const SERVER_URL = process.env.SERVER_URL;
