@@ -6,7 +6,6 @@ export const authenticateToken = (req, res, next) => {
     if (!token) {
         return res.status(401).json({ error: "Try login in again" });
     }
-
     try {
         const decoded = jwt.verify(token, JWT_AUTH_SECRET_KEY);
         req.user_id = decoded;

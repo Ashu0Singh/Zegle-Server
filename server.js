@@ -16,6 +16,7 @@ const __dirname = path.dirname(__filename);
 
 import User from "./routes/user.route.js";
 import Chat from "./routes/chat.route.js";
+import { Feedback } from "./controller/feedback.controller.js";
 
 const app = express();
 const server = createServer(app);
@@ -172,6 +173,8 @@ app.use(
         ignore: "res",
     }),
 );
+
+app.post("/feedback", Feedback);
 
 app.use("/user", User);
 app.use("/chat", Chat);

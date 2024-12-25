@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { RESEND_EMAIL_SECRET } from "../config.js";
+import logger from "../logger.js";
 
 const resend = new Resend(RESEND_EMAIL_SECRET);
 
@@ -12,7 +13,7 @@ export const sendEmail = async (email, subject, message) => {
     });
 
     if (error) {
-        return console.error({ error });
+        return logger.error({ error });
     }
 
     return true;
