@@ -97,6 +97,7 @@ export const Login = async (req, res) => {
         res.status(200).json({
             username: user.username,
             email: user.email,
+            firstname: user.firstname,
         });
     } catch (error) {
         logger.error(error, "Error while loging in a user");
